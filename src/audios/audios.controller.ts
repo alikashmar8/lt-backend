@@ -5,9 +5,13 @@ import {
   Get,
   Param,
   Patch,
-  Post
+  Post,
+  Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AudiosService } from './audios.service';
+import { AudioQueryParamsDto } from './dto/audio-query-params.dto';
 import { CreateAudioDto } from './dto/create-audio.dto';
 import { UpdateAudioDto } from './dto/update-audio.dto';
 
@@ -21,8 +25,9 @@ export class AudiosController {
   }
 
   @Get()
-  findAll() {
-    return this.audiosService.findAll();
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findAll(@Query() queryParams: AudioQueryParamsDto) {
+    return await this.audiosService.findAll(queryParams);
   }
 
   @Get(':id')
