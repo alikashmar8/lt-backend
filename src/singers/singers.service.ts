@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateSingerDto } from './dto/create-singer.dto';
 import { UpdateSingerDto } from './dto/update-singer.dto';
 import { Singer } from './entities/singer.entity';
+import { isString } from 'class-validator';
 
 @Injectable()
 export class SingersService {
@@ -20,7 +21,12 @@ export class SingersService {
     });
   }
 
-  async findAll(queryParams: { take: number; skip: number; search: string }) {
+  async findAll(queryParams: {
+    take: number;
+    skip: number;
+    search: string;
+    random: boolean;
+  }) {
     const take = queryParams.take || 10;
     const skip = queryParams.skip || 0;
 
@@ -34,6 +40,13 @@ export class SingersService {
         'LOWER(singer.nameAr) LIKE :search OR LOWER(singer.nameEn) LIKE :search',
         { search: `%${queryParams.search.toLowerCase()}%` },
       );
+
+    if (
+      queryParams.random &&
+      (queryParams.random === true || queryParams.random === 'true')
+    ) {
+      singersQuery.orderBy('RANDOM()');
+    }
 
     const result = await singersQuery.getManyAndCount();
 
@@ -56,14 +69,17 @@ export class SingersService {
 
   async update(id: string, updateSingerDto: UpdateSingerDto) {
     const singer = await this.findOne(id);
-    
+
     let oldThumbnail = null;
-    if (updateSingerDto.thumbnail && typeof updateSingerDto.thumbnail !== 'string') {
+    if (
+      updateSingerDto.thumbnail &&
+      typeof updateSingerDto.thumbnail !== 'string'
+    ) {
       // Store old thumbnail for deletion after successful update
       if (singer.thumbnail) {
         oldThumbnail = singer.thumbnail;
       }
-      
+
       // Upload new thumbnail
       const path = `rawadeed`;
       const uploadedImageUrl = await this.s3Service.s3FileUpload(
@@ -72,9 +88,9 @@ export class SingersService {
       );
       updateSingerDto.thumbnail = uploadedImageUrl;
     }
-    
+
     Object.assign(singer, updateSingerDto);
-    
+
     return await this.singersRepository
       .save(singer)
       .catch((err) => {
