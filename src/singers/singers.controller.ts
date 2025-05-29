@@ -77,7 +77,7 @@ export class SingersController {
 
   @Get()
   async findAll(
-    @Query() queryParams: { take: number; skip: number; search: string },
+    @Query() queryParams: { take: number; skip: number; search: string; random: boolean },
   ) {
     return await this.singersService.findAll(queryParams);
   }
