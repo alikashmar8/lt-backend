@@ -2,6 +2,7 @@ import { getImageFullUrl } from 'src/common/utils/functions';
 import {
   AfterLoad,
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -42,6 +43,9 @@ export class Audio {
   })
   @JoinColumn({ name: 'postId' })
   post: Post;
+
+  @CreateDateColumn({ name: 'createdAt' })
+  createdAt: Date;
 
   @AfterLoad()
   public setImageUrl() {
